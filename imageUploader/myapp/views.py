@@ -4,6 +4,9 @@ from .models import Image
 import numpy as np
 import cv2
 
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+
 
 def convert_to_cartoon(image):
     img = cv2.imread(image.path)
@@ -34,8 +37,21 @@ def home(request):
             image_instance = form.save(commit=False)
             image_instance.save()
             convert_to_cartoon(image_instance.photo)
+
+            image_url = image_instance.photo.url
+            date = image_instance.date.strftime("%Y-%m-%d %H:%M:%S")
+            response_data = {
+                "image_url": image_url,
+                "date": date,
+            }
+            return JsonResponse(response_data)
     else:
         form = ImageForm()
 
     img = Image.objects.all()
     return render(request, "myapp/home.html", {"img": img, "form": form})
+
+
+def history(request):
+    img = Image.objects.all()
+    return render(request, "myapp/history.html", {"img": img})
